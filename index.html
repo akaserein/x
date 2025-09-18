@@ -1,343 +1,451 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Screenshot Protected Content</title>
+    <title>SpeedRunner 3000 - Mobile Car Game</title>
     <style>
         * {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             user-select: none;
-            -webkit-touch-callout: none;
-            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            margin: 0;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
-            background-size: 400% 400%;
-            animation: gradientShift 3s ease infinite;
-            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
             position: relative;
-            overflow-x: hidden;
         }
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 30%, #228B22 30%, #32CD32 100%);
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            position: relative;
-            z-index: 10;
-        }
-
-        .protection-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 0, 0, 0.1);
-            pointer-events: none;
-            z-index: 1000;
-            animation: protectionFlash 0.5s infinite alternate;
-            display: none;
-        }
-
-        @keyframes protectionFlash {
-            from { background: rgba(255, 0, 0, 0.05); }
-            to { background: rgba(255, 0, 0, 0.15); }
-        }
-
-        .content {
-            line-height: 1.6;
-            color: #333;
-        }
-
-        .watermark {
-            position: fixed;
+        .ui-overlay {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 999;
-            opacity: 0.1;
-            background-image: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 50px,
-                rgba(0,0,0,0.1) 50px,
-                rgba(0,0,0,0.1) 100px
-            );
-            animation: watermarkMove 10s linear infinite;
+            z-index: 100;
         }
 
-        @keyframes watermarkMove {
-            0% { transform: translateX(-100px) translateY(-100px); }
-            100% { transform: translateX(100px) translateY(100px); }
+        .ui-element {
+            pointer-events: all;
         }
 
-        .warning {
-            background: #ff4757;
+        .game-title {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .driver-info {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            color: white;
+            background: rgba(0,0,0,0.7);
             padding: 15px;
             border-radius: 10px;
-            margin: 20px 0;
+            font-size: 18px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .speed-info {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
             text-align: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-btn {
+            width: 80px;
+            height: 80px;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
             font-weight: bold;
-            animation: warningPulse 2s infinite;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
 
-        @keyframes warningPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
+        .control-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
-        .blur-effect {
-            filter: blur(0px);
-            transition: filter 0.3s ease;
+        .switch-btn {
+            width: 120px;
+            height: 50px;
+            border-radius: 25px;
+            background: linear-gradient(145deg, #f093fb, #f5576c);
+            font-size: 16px;
+            margin-top: 20px;
         }
 
-        .no-print {
-            display: block;
+        .arrow-controls {
+            position: absolute;
+            bottom: 40px;
+            left: 20px;
+            display: grid;
+            grid-template-areas: 
+                ". up ."
+                "left . right"
+                ". down .";
+            gap: 10px;
         }
 
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-            body::before {
-                content: "यह content print के लिए उपलब्ध नहीं है";
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                font-size: 24px;
-                color: red;
-                z-index: 9999;
-            }
+        .arrow-up { grid-area: up; }
+        .arrow-down { grid-area: down; }
+        .arrow-left { grid-area: left; }
+        .arrow-right { grid-area: right; }
+
+        .car3d {
+            position: absolute;
+            width: 60px;
+            height: 120px;
+            transition: all 0.1s ease;
+            transform-style: preserve-3d;
         }
 
-        .floating-text {
-            position: fixed;
-            color: rgba(255, 0, 0, 0.3);
-            font-size: 14px;
+        .car-body {
+            width: 100%;
+            height: 80%;
+            background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+            border-radius: 20px 20px 5px 5px;
+            position: relative;
+            box-shadow: 
+                inset 2px 2px 5px rgba(255,255,255,0.3),
+                inset -2px -2px 5px rgba(0,0,0,0.3),
+                0 5px 15px rgba(0,0,0,0.4);
+        }
+
+        .car-roof {
+            width: 70%;
+            height: 40%;
+            background: linear-gradient(45deg, #4ECDC4, #6FFFE9);
+            border-radius: 15px 15px 3px 3px;
+            position: absolute;
+            top: 10%;
+            left: 15%;
+            box-shadow: 
+                inset 1px 1px 3px rgba(255,255,255,0.5),
+                inset -1px -1px 3px rgba(0,0,0,0.2);
+        }
+
+        .car-wheel {
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, #333, #666);
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .wheel-fl { top: 15%; left: -6px; }
+        .wheel-fr { top: 15%; right: -6px; }
+        .wheel-bl { bottom: 15%; left: -6px; }
+        .wheel-br { bottom: 15%; right: -6px; }
+
+        .road-line {
+            position: absolute;
+            width: 4px;
+            height: 40px;
+            background: white;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: roadMove 0.5s linear infinite;
+        }
+
+        @keyframes roadMove {
+            from { top: -40px; }
+            to { top: 100vh; }
+        }
+
+        .driver-nandita .car-body {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+        }
+
+        .driver-altaf .car-body {
+            background: linear-gradient(45deg, #4ECDC4, #44A08D);
+        }
+
+        .floating-name {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 12px;
             font-weight: bold;
-            pointer-events: none;
-            z-index: 998;
-            animation: floatingAnimation 8s linear infinite;
-        }
-
-        @keyframes floatingAnimation {
-            0% { transform: translateX(-100px) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateX(calc(100vw + 100px)) rotate(360deg); opacity: 0; }
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.6);
+            padding: 4px 8px;
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
-    <!-- Watermark overlay -->
-    <div class="watermark"></div>
-    
-    <!-- Protection overlay -->
-    <div class="protection-overlay" id="protectionOverlay"></div>
-    
-    <!-- Floating protection text -->
-    <div class="floating-text" style="top: 10%; animation-delay: 0s;">🚫 SCREENSHOT PROTECTED</div>
-    <div class="floating-text" style="top: 30%; animation-delay: 2s;">⚠️ NO COPYING ALLOWED</div>
-    <div class="floating-text" style="top: 50%; animation-delay: 4s;">🔒 CONFIDENTIAL CONTENT</div>
-    <div class="floating-text" style="top: 70%; animation-delay: 6s;">⛔ UNAUTHORIZED ACCESS</div>
-
-    <div class="container no-print">
-        <div class="warning">
-            ⚠️ चेतावनी: यह content copyright protected है। Screenshot लेना निषिद्ध है! ⚠️
-        </div>
-
-        <div class="content blur-effect" id="mainContent">
-            <h1>🔒 संरक्षित Content</h1>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="ui-overlay">
+            <div class="game-title">SpeedRunner 3000</div>
             
-            <p>यह एक example है कि कैसे आप अपनी website को screenshot protection के साथ बना सकते हैं। यहाँ कुछ techniques का इस्तेमाल किया गया है:</p>
-            
-            <h2>🛡️ Protection Methods:</h2>
-            <p><strong>1. Text Selection Disable:</strong> Text को select नहीं किया जा सकता</p>
-            <p><strong>2. Right Click Disable:</strong> Context menu disabled है</p>
-            <p><strong>3. Keyboard Shortcuts Block:</strong> Print Screen और अन्य shortcuts block हैं</p>
-            <p><strong>4. Dynamic Background:</strong> Screenshot को difficult बनाने के लिए animated background</p>
-            <p><strong>5. Watermark:</strong> Moving watermark overlay</p>
-            <p><strong>6. Print Protection:</strong> Print functionality disabled</p>
-            
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <h3>🎯 Important Information</h3>
-                <p>यह confidential data है जो केवल authorized users के लिए है। कृपया इसे share न करें।</p>
-                <p>📊 Data: Sensitive business metrics और analytics</p>
-                <p>💼 Access Level: Restricted</p>
-                <p>🕒 Valid Until: Limited time access</p>
+            <div class="driver-info ui-element">
+                <div>Driver: <span id="currentDriver">NANDITA</span></div>
+                <div>Car: Turbo Racer</div>
             </div>
             
-            <p><em>नोट: यह protection methods screenshot लेना difficult बनाती हैं, लेकिन 100% foolproof नहीं हैं। Advanced users अभी भी ways निकाल सकते हैं।</em></p>
+            <div class="speed-info ui-element">
+                <div>Speed</div>
+                <div id="speedometer">0 mph</div>
+            </div>
+            
+            <div class="arrow-controls ui-element">
+                <button class="control-btn arrow-up" id="upBtn">↑</button>
+                <button class="control-btn arrow-down" id="downBtn">↓</button>
+                <button class="control-btn arrow-left" id="leftBtn">←</button>
+                <button class="control-btn arrow-right" id="rightBtn">→</button>
+            </div>
+            
+            <div class="controls ui-element">
+                <button class="control-btn switch-btn" id="switchBtn">Switch Driver</button>
+            </div>
+        </div>
+
+        <!-- 3D Car -->
+        <div class="car3d driver-nandita" id="car">
+            <div class="floating-name" id="carName">NANDITA</div>
+            <div class="car-body">
+                <div class="car-roof"></div>
+                <div class="car-wheel wheel-fl"></div>
+                <div class="car-wheel wheel-fr"></div>
+                <div class="car-wheel wheel-bl"></div>
+                <div class="car-wheel wheel-br"></div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Disable right-click context menu
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            showProtectionWarning();
-            return false;
-        });
-
-        // Disable F12, Ctrl+Shift+I, Ctrl+U, etc.
-        document.addEventListener('keydown', function(e) {
-            // F12
-            if (e.keyCode === 123) {
-                e.preventDefault();
-                showProtectionWarning();
-                return false;
+        class MobileCarGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.car = document.getElementById('car');
+                this.currentDriverSpan = document.getElementById('currentDriver');
+                this.carNameSpan = document.getElementById('carName');
+                this.speedometer = document.getElementById('speedometer');
+                
+                this.drivers = ['NANDITA', 'ALTAF'];
+                this.currentDriverIndex = 0;
+                
+                this.carPosition = {
+                    x: window.innerWidth / 2 - 30,
+                    y: window.innerHeight - 200
+                };
+                
+                this.velocity = { x: 0, y: 0 };
+                this.speed = 0;
+                this.maxSpeed = 12;
+                this.acceleration = 0.5;
+                this.friction = 0.92;
+                
+                this.roadLines = [];
+                this.keys = {};
+                
+                this.init();
             }
             
-            // Ctrl+Shift+I (Developer Tools)
-            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
-                e.preventDefault();
-                showProtectionWarning();
-                return false;
+            init() {
+                this.resizeCanvas();
+                this.setupControls();
+                this.createRoadLines();
+                this.gameLoop();
+                
+                window.addEventListener('resize', () => this.resizeCanvas());
             }
             
-            // Ctrl+Shift+C (Inspect Element)
-            if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
-                e.preventDefault();
-                showProtectionWarning();
-                return false;
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
             }
             
-            // Ctrl+U (View Source)
-            if (e.ctrlKey && e.keyCode === 85) {
-                e.preventDefault();
-                showProtectionWarning();
-                return false;
+            setupControls() {
+                const buttons = {
+                    upBtn: 'up',
+                    downBtn: 'down',
+                    leftBtn: 'left',
+                    rightBtn: 'right'
+                };
+                
+                Object.keys(buttons).forEach(btnId => {
+                    const btn = document.getElementById(btnId);
+                    const key = buttons[btnId];
+                    
+                    btn.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        this.keys[key] = true;
+                    });
+                    
+                    btn.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        this.keys[key] = false;
+                    });
+                    
+                    btn.addEventListener('mousedown', () => this.keys[key] = true);
+                    btn.addEventListener('mouseup', () => this.keys[key] = false);
+                });
+                
+                document.getElementById('switchBtn').addEventListener('click', () => {
+                    this.switchDriver();
+                });
+                
+                // Keyboard controls for desktop
+                document.addEventListener('keydown', (e) => {
+                    switch(e.code) {
+                        case 'ArrowUp': this.keys.up = true; break;
+                        case 'ArrowDown': this.keys.down = true; break;
+                        case 'ArrowLeft': this.keys.left = true; break;
+                        case 'ArrowRight': this.keys.right = true; break;
+                        case 'Space': this.switchDriver(); break;
+                    }
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    switch(e.code) {
+                        case 'ArrowUp': this.keys.up = false; break;
+                        case 'ArrowDown': this.keys.down = false; break;
+                        case 'ArrowLeft': this.keys.left = false; break;
+                        case 'ArrowRight': this.keys.right = false; break;
+                    }
+                });
             }
             
-            // Ctrl+S (Save Page)
-            if (e.ctrlKey && e.keyCode === 83) {
-                e.preventDefault();
-                showProtectionWarning();
-                return false;
+            switchDriver() {
+                this.currentDriverIndex = (this.currentDriverIndex + 1) % this.drivers.length;
+                const newDriver = this.drivers[this.currentDriverIndex];
+                
+                this.currentDriverSpan.textContent = newDriver;
+                this.carNameSpan.textContent = newDriver;
+                
+                // Switch car appearance
+                this.car.className = `car3d driver-${newDriver.toLowerCase()}`;
+                
+                // Add switch animation
+                this.car.style.transform = 'scale(1.2) rotateY(360deg)';
+                setTimeout(() => {
+                    this.car.style.transform = '';
+                }, 300);
             }
             
-            // Print Screen
-            if (e.keyCode === 44) {
-                e.preventDefault();
-                showProtectionWarning();
-                return false;
+            createRoadLines() {
+                for(let i = 0; i < 8; i++) {
+                    const line = document.createElement('div');
+                    line.className = 'road-line';
+                    line.style.top = (i * 100 - 200) + 'px';
+                    line.style.animationDelay = (i * 0.1) + 's';
+                    document.getElementById('gameContainer').appendChild(line);
+                }
             }
             
-            // Ctrl+P (Print)
-            if (e.ctrlKey && e.keyCode === 80) {
-                e.preventDefault();
-                showProtectionWarning();
-                return false;
+            updateCarMovement() {
+                // Apply acceleration based on input
+                if (this.keys.up) {
+                    this.velocity.y -= this.acceleration;
+                }
+                if (this.keys.down) {
+                    this.velocity.y += this.acceleration;
+                }
+                if (this.keys.left) {
+                    this.velocity.x -= this.acceleration;
+                }
+                if (this.keys.right) {
+                    this.velocity.x += this.acceleration;
+                }
+                
+                // Apply friction
+                this.velocity.x *= this.friction;
+                this.velocity.y *= this.friction;
+                
+                // Limit speed
+                this.speed = Math.sqrt(this.velocity.x ** 2 + this.velocity.y ** 2);
+                if (this.speed > this.maxSpeed) {
+                    this.velocity.x = (this.velocity.x / this.speed) * this.maxSpeed;
+                    this.velocity.y = (this.velocity.y / this.speed) * this.maxSpeed;
+                    this.speed = this.maxSpeed;
+                }
+                
+                // Update position
+                this.carPosition.x += this.velocity.x;
+                this.carPosition.y += this.velocity.y;
+                
+                // Boundary checking
+                this.carPosition.x = Math.max(0, Math.min(window.innerWidth - 60, this.carPosition.x));
+                this.carPosition.y = Math.max(0, Math.min(window.innerHeight - 120, this.carPosition.y));
+                
+                // Update car visual position
+                this.car.style.left = this.carPosition.x + 'px';
+                this.car.style.top = this.carPosition.y + 'px';
+                
+                // Rotation based on movement
+                let rotation = 0;
+                if (Math.abs(this.velocity.x) > 0.5) {
+                    rotation = this.velocity.x * 3;
+                }
+                this.car.style.transform = `rotate(${rotation}deg)`;
+                
+                // Update speedometer
+                this.speedometer.textContent = Math.round(this.speed * 8) + ' mph';
             }
-        });
-
-        function showProtectionWarning() {
-            const overlay = document.getElementById('protectionOverlay');
-            overlay.style.display = 'block';
-            alert('🚫 Screenshot और copying protected है!\n\n⚠️ यह content copyright protected है।');
-            setTimeout(() => {
-                overlay.style.display = 'none';
-            }, 1000);
+            
+            gameLoop() {
+                this.updateCarMovement();
+                requestAnimationFrame(() => this.gameLoop());
+            }
         }
-
-        // Blur content when dev tools might be open
-        let devtools = {open: false, orientation: null};
-        const threshold = 160;
         
-        setInterval(function() {
-            if (window.outerHeight - window.innerHeight > threshold || 
-                window.outerWidth - window.innerWidth > threshold) {
-                if (!devtools.open) {
-                    devtools.open = true;
-                    document.getElementById('mainContent').style.filter = 'blur(5px)';
-                    showProtectionWarning();
-                }
-            } else {
-                if (devtools.open) {
-                    devtools.open = false;
-                    document.getElementById('mainContent').style.filter = 'blur(0px)';
-                }
-            }
-        }, 500);
-
-        // Disable drag and drop
-        document.addEventListener('dragstart', function(e) {
-            e.preventDefault();
-            return false;
+        // Start the game when page loads
+        window.addEventListener('load', () => {
+            new MobileCarGame();
         });
-
-        // Clear clipboard periodically
-        setInterval(function() {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText('');
-            }
-        }, 5000);
-
-        // Disable image saving
-        document.addEventListener('dragstart', function(e) {
-            if (e.target.tagName === 'IMG') {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        // Monitor for screenshot attempts (limited detection)
-        document.addEventListener('keyup', function(e) {
-            // This won't catch all screenshot methods but adds some protection
-            if (e.keyCode === 44) { // Print Screen released
-                showProtectionWarning();
-            }
-        });
-
-        // Disable text selection on mobile
-        document.addEventListener('selectstart', function(e) {
-            e.preventDefault();
-            return false;
-        });
-
-        // Add more floating protection text dynamically
-        function addFloatingText() {
-            const texts = ['🔐 PROTECTED', '⚠️ NO COPY', '🚫 RESTRICTED', '🛡️ SECURE'];
-            const text = texts[Math.floor(Math.random() * texts.length)];
-            const element = document.createElement('div');
-            element.className = 'floating-text';
-            element.textContent = text;
-            element.style.top = Math.random() * 80 + 10 + '%';
-            element.style.animationDelay = '0s';
-            document.body.appendChild(element);
-            
-            setTimeout(() => {
-                element.remove();
-            }, 8000);
-        }
-
-        // Add floating text every few seconds
-        setInterval(addFloatingText, 3000);
-
-        console.clear();
-        console.log('%c🚫 STOP!', 'color: red; font-size: 50px; font-weight: bold;');
-        console.log('%cयह एक browser security feature है। यदि आप developer नहीं हैं तो यहाँ कोई code paste न करें।', 'color: red; font-size: 16px;');
     </script>
 </body>
 </html>
